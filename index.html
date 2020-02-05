@@ -64,31 +64,141 @@
 }
 </style>
 <title>D3 Web Page</title>
+<script src="https://d3js.org/d3.v4.js"></script> 
+<style>
+table {
+width: 200px;
+}
+td {
+width: 50%;
+text-align: center;
+border: 1px solid blue;
+}
+td.name {
+background-color: green; 
+}
+
+td.value {
+background-color: lightgreen; 
+}
+
+</style>
 </head>
 
 <body>
 
 <h1> D3 Web Page</h1>
 
-<p>This is an R HTML document. When you click the <b>Knit HTML</b> button a web page will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:</p>
+<div id= "table"></div>
+<div id= "my_dataviz"></div>
+<svg height="200" width ="200">
+<!--
+<circle cx="50" cy="50" r="40" stroke="red" stroke-width="3" fill="lightgreen"></circle>
+-->
+</svg>
 
-<div class="chunk" id="unnamed-chunk-1"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">summary</span><span class="hl std">(cars)</span>
-</pre></div>
-<div class="output"><pre class="knitr r">##      speed           dist       
-##  Min.   : 4.0   Min.   :  2.00  
-##  1st Qu.:12.0   1st Qu.: 26.00  
-##  Median :15.0   Median : 36.00  
-##  Mean   :15.4   Mean   : 42.98  
-##  3rd Qu.:19.0   3rd Qu.: 56.00  
-##  Max.   :25.0   Max.   :120.00
-</pre></div>
-</div></div>
 
-<p>You can also embed plots, for example:</p>
+<script>
+var mydata = [5,6,2,4,11,6];
+var my_csv_data;
 
-<div class="chunk" id="unnamed-chunk-2"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">plot</span><span class="hl std">(cars)</span>
-</pre></div>
-</div><div class="rimage default"><img src="figure/unnamed-chunk-2-1.png" title="plot of chunk unnamed-chunk-2" alt="plot of chunk unnamed-chunk-2" class="plot" /></div></div>
+d3.csv("data1.csv", function(data){
+  my_csv_data =data;
+ d3.select("#table")
+ .append("table")
+ .selectAll("tr")
+ .data(data)
+ .enter()
+ .append("tr")
+ .html(d=>"<td class='name'>" + d.name + "</td>" + "<td class= 'value'>" + d.value + "</td>");
+ //var data = [12,19,11,13,12,22,13,4,15,16,18,19,20,12,11,9]
+ var dd= data.map(d=> + d.value);
+ boxplot(dd)
+})
+
+
+// var circles = d3.select("svg")
+//            .selectAll("circle")
+// .data(mydata)
+//            .enter();
+
+//var jitter= 50;
+
+//circles.append("circle")
+//.attr('cx', d=> 50 + Math.random()* jitter)
+//.attr('cy', d=> 50 + Math.random()* jitter)
+//.attr('r', d=> d)
+//.attr('fill', d=> "lightgreen")
+
+function boxplot(data){
+// set the dimensions and margins of the graph
+var margin = {top: 10, right: 30, bottom: 30, left: 40},
+  width = 400 - margin.left - margin.right,
+  height = 400 - margin.top - margin.bottom;
+
+// append the svg object to the body of the page
+var svg = d3.select("#my_dataviz")
+.append("svg")
+  .attr("width", width + margin.left + margin.right)
+  .attr("height", height + margin.top + margin.bottom)
+.append("g")
+  .attr("transform",
+        "translate(" + margin.left + "," + margin.top + ")");
+
+// create dummy data
+// var data = [12,19,11,13,12,22,13,4,15,16,18,19,20,12,11,9]
+
+// Compute summary statistics used for the box:
+var data_sorted = data.sort(d3.ascending)
+var q1 = d3.quantile(data_sorted, .25)
+var median = d3.quantile(data_sorted, .5)
+var q3 = d3.quantile(data_sorted, .75)
+var interQuantileRange = q3 - q1
+var min = q1 - 1.5 * interQuantileRange
+var max = q1 + 1.5 * interQuantileRange
+
+// Show the Y scale
+var y = d3.scaleLinear()
+  .domain([min*0.9, max*1.1])
+  .range([height, 0]);
+svg.call(d3.axisLeft(y))
+
+// a few features for the box
+var center = 200
+var width = 100
+
+// Show the main vertical line
+svg
+.append("line")
+  .attr("x1", center)
+  .attr("x2", center)
+  .attr("y1", y(min) )
+  .attr("y2", y(max) )
+  .attr("stroke", "black")
+
+// Show the box
+svg
+.append("rect")
+  .attr("x", center - width/2)
+  .attr("y", y(q3) )
+  .attr("height", (y(q1)-y(q3)) )
+  .attr("width", width )
+  .attr("stroke", "black")
+  .style("fill", "lightgreen")
+
+// show median, min and max horizontal lines
+svg
+.selectAll("toto")
+.data([min, median, max])
+.enter()
+.append("line")
+  .attr("x1", center-width/2)
+  .attr("x2", center+width/2)
+  .attr("y1", function(d){ return(y(d))} )
+  .attr("y2", function(d){ return(y(d))} )
+  .attr("stroke", "black")
+}
+</script>
 
 </body>
 </html>
